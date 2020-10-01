@@ -43,24 +43,24 @@ def trans_pdf(file_name, path):
     bytes_array = 0
     try:
         for cur_page in cur_pdf:
+            print('正在翻译第{}页...'.format(i+1))
             img_list = cur_page.getImageList()  # 获取当前页面的图片对象
-            # print(cur_page.getFontList()) # 页面使用的字体列表
-            # print(img_list)
+            #print(img_list)
             imgcount = 0
             for img in img_list:  # 获取当前页面的图像列表
-                pix_temp1 = fitz.Pixmap(cur_pdf, img[0])
-                if img[1]:
-                    pix_temp2 = fitz.Pixmap(cur_pdf, img[1])
-                    pix_temp = fitz.Pixmap(pix_temp1)
-                    pix_temp.setAlpha(pix_temp2.samples)
-                else:
-                    pix_temp = pix_temp1
+                img0 = Image.open(io.BytesIO(cur_pdf.extractImage(img[0])["image"]))
+                mask = Image.open(io.BytesIO(cur_pdf.extractImage(img[1])["image"])) if img[1] else None
+                img = Image.new("RGBA", img0.size)
+                img.paste(img0, None, mask)
+                bf = io.BytesIO()
+                img.save(bf, "png")
+    
                 imgcount += 1
                 new_name = "图片{}.png".format(imgcount)  # 生成图片的名称
-                pix_temp.writeImage(os.path.join(settings.BASE_DIR, 'trans', 'output_file', new_name))
-                # bytes_array = pix_temp.getImageData('png')#可以不输出图片再写入新的pdf，通过byte
-                # print(pix_temp.getImageData('png'))
-                pix_temp = None  # 释放资源
+                fout = open(os.path.join(root, 'trans', 'output_file', new_name), "wb")
+                fout.write(bf.getvalue())
+                fout.close()
+                bf = None  # 释放资源
             print('当前正在翻译翻译第{}页...'.format(int(str(cur_page).split(' ')[1]) + 1))
             # 读取输入页面的blocks
             blks = cur_page.getTextBlocks(flags = 4)

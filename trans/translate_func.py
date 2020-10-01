@@ -107,13 +107,16 @@ def google_translate(content):
     result = requests.get("""http://translate.google.cn/translate_a/single?client=t&sl=en 
         &tl=zh-CN&hl=zh-CN&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss 
         &dt=t&ie=UTF-8&oe=UTF-8&clearbtn=1&otf=1&pc=1&srcrom=0&ssel=0&tsel=0&kc=2""", params=param)
-    #返回的结果为Json，解析为一个嵌套列表  
-    trans = result.json()[0]
-    res = ''
-    for i in range(len(trans)):
-        line = trans[i][0]
-        if line != None:
-            res += trans[i][0]
+    if round(result.status_code/100)==2: #成功
+        #返回的结果为Json，解析为一个嵌套列表  
+        trans = result.json()[0]
+        res = ''
+        for i in range(len(trans)):
+            line = trans[i][0]
+            if line != None:
+                res += trans[i][0]
+    else: #失败
+        res = content
 
     return res
 
